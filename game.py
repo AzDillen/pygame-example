@@ -7,13 +7,17 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Konstanter
 FPS = 60
-SCREEN_SIZE = (800, 600)
-CAPTION = "Pygame Example"
+SCREEN_SIZE = (1200, 1000)
+CAPTION = "Nice god"
 
-COLOR = {'ship': pygame.Color('#FF0000'),
-         'ship_fill': pygame.Color('#660000'),
-         'bg': pygame.Color('#333333'),
-         'thruster': pygame.Color('#7799FF'),
+COLOR = {'ship': pygame.Color('#FF00FF'),
+         'ship_fill': pygame.Color('#FF00FF'),
+         'bg': pygame.Color('#FFFF00'),
+         'thruster': pygame.Color('#008000'),
+         'colorman': pygame.Color('#008000'),
+         'bg_pause': pygame.Color('#a142f4'),
+         'text_color': pygame.Color('#000705'),
+
 }
 
 # Game states
@@ -37,6 +41,7 @@ class Controller():
 
         # Initialize game state
         self.game_state = STATE_PREGAME
+        self.Large_text = pygame.font.SysFont("", 115)
 
 
     def run(self):
@@ -53,7 +58,7 @@ class Controller():
                     self.quit()
 
                 if self.game_state == STATE_PREGAME:
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    if event.type == pygame.MOUSEBUTTONDOWN:
                         self.game_state = STATE_RUNNING
 
                 if self.game_state == STATE_RUNNING:
@@ -91,13 +96,19 @@ class Controller():
 
             if self.game_state == STATE_GAMEOVER:
                 self.quit()  # Gör något bättre.
+            if self.game_state == STATE_PREGAME:
+                self.screen.fill(COLOR['bg_pause'])
+                text = self.Large_text.render("Nacho", True, COLOR['text_color'])
+                pos = (SCREEN_SIZE[0] / 2 - text.get_width() / 2,
+                        SCREEN_SIZE[1] / 2 - text.get_height() / 2)
+                self.screen.blit(text, pos)
 
             pygame.display.flip()
 
             self.clock.tick(self.fps)
 
     def quit(self):
-        logging.info('Quitting... good bye!')
+        logging.info('You are a doer of the losing, noob')
         pygame.quit()
         sys.exit()
 
@@ -112,10 +123,11 @@ class Player():
         self.right_thruster = False
         self.x_speed = 0
         self.y_speed = 0
-        self.gravity = 0.1
+        self.gravity = 1
+        self.fuel = 1195
 
     def draw(self):
-        surface = pygame.Surface((20, 20))
+        surface = pygame.Surface((2100, 2100))
         surface.fill(COLOR['bg'])
 #        pygame.draw.line(surface, COLOR['ship'], (10, 0), (15, 20))
 #        pygame.draw.line(surface, COLOR['ship'], (10, 0), (5, 20))
@@ -131,13 +143,14 @@ class Player():
         if self.right_thruster:
             pygame.draw.polygon(surface, COLOR['thruster'], ((14, 12), (15, 14), (18, 13), (14, 12), 0))
 
+        pygame.draw.lines(self.screen, COLOR['colorman'], 0, [(5,30), (self.fuel, 30)], 40)
 
-        self.screen.blit(surface, (self.x - 10, self.y - 10))
+        self.screen.blit(surface, (self.x - 25, self.y - 10))
 
     def tick(self):
         # -- Y-axis control
         if self.engine:
-            self.y_speed -= 0.01
+            self.y_speed -= 0.03
         else:
             self.y_speed += 0.01
 
@@ -153,6 +166,12 @@ class Player():
         self.x_speed = self.x_speed * 0.99
 
         self.x = self.x + self.x_speed
+        if self.engine == True:
+            self.fuel -= 2.50
+
+        if self.fuel <0:
+            self.engine = False
+
 
     def engine_on(self):
         self.engine = True
